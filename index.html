@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>For My Love ❤️</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      height: 95vh;
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(120deg, #ff9a9e, #fad0c4);
+      color: #fff;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 2em;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .img-button {
+      margin: 40px auto;
+      width: 120px;
+      height: 120px;
+      background-image: url('./heart.png');
+      background-size: cover;
+      background-position: center;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .img-button:hover {
+      transform: scale(1.1);
+    }
+
+    #messageBox {
+      margin: 40px auto;
+      max-width: 90%;
+      font-size: 1.2em;
+      white-space: pre-line;
+      display: none;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(5px);
+      font-style: italic;
+      font-family: monospace;
+      color: slategray;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 999;
+      display: none; /* hide initially */
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5em;
+      }
+
+      .img-button {
+        width: 90px;
+        height: 90px;
+      }
+
+      #messageBox {
+        font-size: 1em;
+      }
+    }
+
+    #nextButton {
+      position: fixed;
+      bottom: 20%;
+      right: 20px;
+      background-color: #ff6b81;
+      border: none;
+      padding: 12px 18px;
+      font-size: 1em;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+    }
+
+    #nextButton:hover {
+      transform: scale(1.1);
+    }
+
+    #backButton {
+      position: fixed;
+      bottom: 20%;
+      left: 20px;
+      background-color: #ff6b81;
+      border: none;
+      padding: 12px 18px;
+      font-size: 1em;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+    }
+
+    #backButton:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Hello Sweetheart ❤️</h1>
+
+  <div class="img-button" onclick="showMessage()"></div>
+
+  <div id="messageBox"></div>
+
+  <canvas id="confetti"></canvas>
+
+  <button id="backButton" onclick="showPrevMessage()">👈 Back</button>
+  <button id="nextButton" onclick="showNextMessage()">Next 👉</button>
+
+  <script>
+    const messages = [
+      `Hey Beautiful ❤️
+
+Do you remember how we met? 😊
+It was the beginning of something truly magical.
+
+Every moment with you has been a gift,
+a page in our little love story.
+
+You light up my world, make me smile,
+and give me more love than I ever knew I needed.
+
+Just wanted to say...
+
+I LOVE YOU 💕
+Forever & Always.
+
+- Yours Truly 💌
+- Mr. Harsh Ayushi Pandey 💞`,
+
+      `You're my sunshine on cloudy days,
+my comfort in chaos,
+and my constant reminder that true love exists. 🌈
+
+There’s not a day that goes by where I don’t feel lucky to have you.
+
+With all my heart,
+With all my soul,
+
+I'm always yours... 💖
+– Mr. Harsh Ayushi Pandey 💞`
+    ];
+
+    let messageShown = false;
+    let currentIndex = 0;
+    const box = document.getElementById("messageBox");
+    const nextBtn = document.getElementById("nextButton");
+    const backBtn = document.getElementById("backButton");
+    const confettiCanvas = document.getElementById('confetti');
+    const confettiCtx = confettiCanvas.getContext('2d');
+    let confettiPieces = [];
+    let confettiRunning = false;
+
+    // Resize canvas to full window
+    function resizeCanvas() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Confetti particle class
+    class ConfettiPiece {
+      constructor() {
+        this.x = Math.random() * confettiCanvas.width;
+        this.y = Math.random() * confettiCanvas.height - confettiCanvas.height;
+        this.size = (Math.random() * 8) + 4;
+        this.speed = (Math.random() * 3) + 2;
+        this.angle = Math.random() * 360;
+        this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        this.tilt = Math.random() * 10;
+        this.tiltSpeed = (Math.random() * 0.1) + 0.05;
+      }
+      update() {
+        this.y += this.speed;
+        this.angle += this.tiltSpeed;
+        this.tilt = Math.sin(this.angle) * 10;
+
+        if (this.y > confettiCanvas.height) {
+          this.y = -this.size;
+          this.x = Math.random() * confettiCanvas.width;
+        }
+      }
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.lineWidth = this.size / 2;
+        ctx.strokeStyle = this.color;
+        ctx.moveTo(this.x + this.tilt + this.size / 4, this.y);
+        ctx.lineTo(this.x + this.tilt, this.y + this.size);
+        ctx.stroke();
+      }
+    }
+
+    function createConfettiPieces(num = 150) {
+      confettiPieces = [];
+      for(let i = 0; i < num; i++) {
+        confettiPieces.push(new ConfettiPiece());
+      }
+    }
+
+    function renderConfetti() {
+      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confettiPieces.forEach(piece => {
+        piece.update();
+        piece.draw(confettiCtx);
+      });
+      if(confettiRunning) {
+        requestAnimationFrame(renderConfetti);
+      }
+    }
+
+    function startConfetti() {
+      if(confettiRunning) return; // only start once
+      confettiCanvas.style.display = 'block';
+      confettiRunning = true;
+      createConfettiPieces();
+      renderConfetti();
+    }
+
+    // Show message and start confetti only on first click
+    function showMessage() {
+      if (messageShown) return;
+      messageShown = true;
+
+      box.style.display = "block";
+      backBtn.style.display = "none";  // hide back initially
+      typeWriter(messages[currentIndex], 0, box, () => {
+        nextBtn.style.display = messages.length > 1 ? "block" : "none";
+      });
+      startConfetti();
+    }
+
+    function typeWriter(text, i, element, callback) {
+      if (i < text.length) {
+        element.innerHTML += text.charAt(i);
+        setTimeout(() => typeWriter(text, i + 1, element, callback), 10);
+      } else if (callback) {
+        callback();
+      }
+    }
+
+    function showNextMessage() {
+      currentIndex++;
+      if (currentIndex < messages.length) {
+        box.innerHTML = ""; // Clear previous message
+        nextBtn.style.display = "none";
+        backBtn.style.display = "none";
+
+        typeWriter(messages[currentIndex], 0, box, () => {
+          if (currentIndex < messages.length - 1) nextBtn.style.display = "block";
+          if (currentIndex > 0) backBtn.style.display = "block";
+        });
+      } else {
+        nextBtn.style.display = "none"; // Hide button if no more messages
+      }
+    }
+
+    function showPrevMessage() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        box.innerHTML = ""; // Clear old message
+        nextBtn.style.display = "none";
+        backBtn.style.display = "none";
+
+        typeWriter(messages[currentIndex], 0, box, () => {
+          if (currentIndex < messages.length - 1) nextBtn.style.display = "block";
+          if (currentIndex > 0) backBtn.style.display = "block";
+        });
+      }
+    }
+  </script>
+</body>
+</html>
